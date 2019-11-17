@@ -1,0 +1,13 @@
+Hardware Requirements:
+1) WIFI to connect to a network.
+2) A Router or a device that can set up a Hotspot.
+
+Software Requirements:
+1) Install JAVA jdk.
+   Follow link:(https://www.oracle.com/technetwork/java/javase/downloads/index.html)
+2) Install Python 2.8 or higher.
+   Follow link:(https://www.python.org/downloads/).
+3) Install Kazoo.
+   Follow link:(https://kazoo.readthedocs.io/en/latest/install.html)
+4) Install gRPC for Python.
+   Follow link:(https://grpc.io/docs/quickstart/python/)
