@@ -1,5 +1,5 @@
-#Distributed Computing Assignment Project on Chain Replication
-#Author: Rakesh Nagaraju, Student ID: 014279304
+#Distributed Computing Project on Chain Replication
+#Author: Rakesh Nagaraju
 from concurrent import futures
 from kazoo.client import KazooClient
 from kazoo.client import KazooState
