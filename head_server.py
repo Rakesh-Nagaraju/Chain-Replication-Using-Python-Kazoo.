@@ -45,7 +45,7 @@ class ChainServer(chain_pb2_grpc.HeadChainReplicaServicer):
     def update(self, Sessions):
         suc_add = self.successor_My_address
         Sessions.sort()
-        myIndex = Sessions.index(self.my_sess_id)
+        myIndex = Sessions.index((self.my_sess_id).lstrip("0x").encode("utf-8"))
         self.head_server = myIndex == 0
         self.tail_server = myIndex == len(Sessions) - 1
         if self.head_server == True:
@@ -72,7 +72,7 @@ class ChainServer(chain_pb2_grpc.HeadChainReplicaServicer):
         data, ver = zk.get("/headchain/" + Sessions[0])
         channel = grpc.insecure_channel(data)
         self.head_stub = chain_pb2_grpc.HeadChainReplicaStub(channel)
-        data, ver = zk.get("/headchain/" + Sessions[len(Sessions-1)])
+        data, ver = zk.get("/headchain/" + Sessions[len(Sessions)-1])
         channel = grpc.insecure_channel(data)
         self.tail_stub = chain_pb2_grpc.HeadChainReplicaStub(channel)
         print("My Current Info:")
@@ -86,47 +86,47 @@ class ChainServer(chain_pb2_grpc.HeadChainReplicaServicer):
       "Hash_hash_dict(key,pair): ",str(self.hash_dict))
 
 #Function to Perform State Update.
-def proposeStateUpdate(self, HeadStateUpdateRequest, context):
-    print("got state update request: {}".format(HeadStateUpdateRequest))
-    if self.head_server:
-        print("Returning RC=1, because I'm the Head.")
-        return chain_pb2.ChainResponse(rc=1)
-        if HeadStateUpdateRequest.src != int(self.predecessor_Id, 0):
-            print("Returning RC=1, because its not from my Predecessor.")
-            return chain_pb2.ChainResponse(rc=1)
+    def proposeStateUpdate(self, HeadStateUpdateRequest, context):
+        print("got state update request: {}".format(HeadStateUpdateRequest))
+        if self.head_server:
+          print("Returning RC=1, because I'm the Head.")
+          return chain_pb2.ChainResponse(rc=1)
+        if HeadStateUpdateRequest.src != int("0x"+self.predecessor_Id, 0):
+          print("Returning RC=1, because its not from my Predecessor.")
+          return chain_pb2.ChainResponse(rc=1)
         if HeadStateUpdateRequest.xid <= self.xid:
-            print("Returning RC=1, because Xid is lesser than Mine.")
-            return chain_pb2.ChainResponse(rc=1)
-    self.hash_dict[HeadStateUpdateRequest.key] = HeadStateUpdateRequest.value
-    self.xid = HeadStateUpdateRequest.xid
-    #Call Xid Processed request.
-    if self.tail_server == True:
-     print("Sending Xid Processed Request...")
-     request = chain_pb2.XidProcessedRequest(xid=self.xid)
-     print(self.head_stub.xidProcessed(request))
-    else:
-     print("Sending State Update Request...")
-     request = chain_pb2.HeadStateUpdateRequest(src=int(self.my_sess_id, 0), xid=HeadStateUpdateRequest.xid, key=HeadStateUpdateRequest.key, value=HeadStateUpdateRequest.value)
-     self.sent_list.append(request)
-     print(self.successor_Stub.proposeStateUpdate(request))
-    #Call Latest Xid request.
-    print("Latest Xid Request!!!")
-    request = chain_pb2.LatestXidRequest()
-    print("Sending Get latest Xid Request...")
-    response = self.tail_stub.getLatestXid(request)
-    if response.rc == 0:
-     for request in self.sent_list:
-      if (request.xid <= self.xid):
-       self.sent_list.remove(request)
-    print("Returning RC=0")
-    return chain_pb2.ChainResponse(rc=0)
+          print("Returning RC=1, because Xid is lesser than Mine.")
+          return chain_pb2.ChainResponse(rc=1)
+        self.hash_dict[HeadStateUpdateRequest.key] = HeadStateUpdateRequest.value
+        self.xid = HeadStateUpdateRequest.xid
+        #Call Xid Processed request.
+        if self.tail_server == True:
+         print("Sending Xid Processed Request...")
+         request = chain_pb2.XidProcessedRequest(xid=self.xid)
+         print(self.head_stub.xidProcessed(request))
+        else:
+         print("Sending State Update Request...")
+         request = chain_pb2.HeadStateUpdateRequest(src=int(self.my_sess_id, 0), xid=HeadStateUpdateRequest.xid, key=HeadStateUpdateRequest.key, value=HeadStateUpdateRequest.value)
+         self.sent_list.append(request)
+         print(self.successor_Stub.proposeStateUpdate(request))
+        #Call Latest Xid request.
+        print("Latest Xid Request!!!")
+        request = chain_pb2.LatestXidRequest()
+        print("Sending Get latest Xid Request...")
+        response = self.tail_stub.getLatestXid(request)
+        if response.rc == 0:
+         for request in self.sent_list:
+          if (response.xid <= self.xid):
+           self.sent_list.remove(request)
+        print("Returning RC=0")
+        return chain_pb2.ChainResponse(rc=0)
 
     #Function to Perform Get Latest Xid.
     def getLatestXid(self, LatestXidRequest, context):
-     print("got get latest xid Request: {}".format(LatestXidRequest))
-     if self.tail_server == False:
-        print("Returning RC=1, because I'm not the Tail Server.")
-        return chain_pb2.LatestXidResponse(rc=1, xid=self.xid)
+        print("got get latest xid Request: {}".format(LatestXidRequest))
+        if self.tail_server == False:
+           print("Returning RC=1, because I'm not the Tail Server.")
+           return chain_pb2.LatestXidResponse(rc=1, xid=self.xid)
         print("Returning RC=0")
         return chain_pb2.LatestXidResponse(rc=0, xid=self.xid)
     
@@ -215,15 +215,15 @@ try:
  #Get Session ID.
  sid, pw = zk.client_id
  #Change the below line to Your System's IP address.
- cs.set_vals(hex(sid),"192.168.43.291:" + sys.argv[2])
+ cs.set_vals(hex(sid),"10.0.0.48:" + sys.argv[2])
  server = grpc.server(futures.ThreadPoolExecutor())
  chain_pb2_grpc.add_HeadChainReplicaServicer_to_server(cs, server)
  #Change the below line to Your System's IP address.
- server.add_insecure_port("192.168.43.91:" + sys.argv[2])
+ server.add_insecure_port("10.0.0.48:" + sys.argv[2])
  #Begin Server.
  server.start()
  #Change the below line to Your System's IP address.
- zk.create("/headchain/" + (hex(sid)).lstrip("0x"), ("192.168.43.91:" + sys.argv[2]).encode(),ephemeral=True)
+ zk.create("/headchain/" + (hex(sid)).lstrip("0x"), ("10.0.0.48:" + sys.argv[2]).encode(),ephemeral=True)
  #Watchers to Update Head Tail Succesor and Predecessor when a node joins or leaves the Network.
  @zk.ChildrenWatch("/headchain")
  def watch_children(Sessions):
