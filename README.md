@@ -71,7 +71,7 @@ Example: $ java -jar head_client.jar 192.168.43.91:2181
 Here, 192.168.43.91:2181 is the Zookeeper IP address and Port number. 
 
 Server: head_server.py
-Clone the code as many times as you want into a new python file to create as many replicas in the chain. Run every Python server code with different Port numbers to succesfully connect and interact in the Network.
+Clone the code as many times as you want into a new python file to create as many replicas in the chain. Run every Python server code with different Port numbers to successfully connect and interact in the Network.
 NOTE:
  Open the Python program and edit the IP address to your system IP address,as mentioned in the comments inside the code.
 
